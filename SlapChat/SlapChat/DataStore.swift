@@ -12,9 +12,8 @@ import CoreData
 class DataStore {
     
     var messages:[Message] = []
-    
+    var users: [Recipient] = []
     static let sharedDataStore = DataStore()
-    
     
     // MARK: - Core Data Saving support
     
@@ -23,8 +22,6 @@ class DataStore {
             do {
                 try managedObjectContext.save()
             } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
                 let nserror = error as NSError
                 NSLog("Unresolved error \(nserror), \(nserror.userInfo)")
                 abort()
@@ -32,29 +29,24 @@ class DataStore {
         }
     }
     
-    func fetchData ()
-    {
-        
+    func fetchRecipientData() {
         var error:NSError? = nil
-        
-        let messagesRequest = NSFetchRequest(entityName: "Message")
-        
-        let createdAtSorter = NSSortDescriptor(key: "createdAt", ascending:true)
-        
-        messagesRequest.sortDescriptors = [createdAtSorter]
-        
+        let userRequest = NSFetchRequest(entityName: "Recipient")
+        let userName = NSSortDescriptor(key: "name", ascending:true)
+        userRequest.sortDescriptors = [userName]
         do{
-            messages = try managedObjectContext.executeFetchRequest(messagesRequest) as! [Message]
+            users = try managedObjectContext.executeFetchRequest(userRequest) as! [Recipient]
         }catch let nserror1 as NSError{
             error = nserror1
-            messages = []
+            print("error occured: \(error)")
+            users = []
         }
         
-        if messages.count == 0 {
-            generateTestData()
+        if users.count == 0 {
+            self.generateTestData()
+            self.saveContext()
+            self.fetchRecipientData()
         }
-        
-        ////         perform a fetch request to fill an array property on your datastore
     }
     
     func generateTestData() {
@@ -74,9 +66,29 @@ class DataStore {
         messageThree.content = "Message 3"
         messageThree.createdAt = NSDate()
         
+        ///Users////
+        
+        let userOne: Recipient = NSEntityDescription.insertNewObjectForEntityForName("Recipient", inManagedObjectContext: managedObjectContext) as! Recipient
+        
+        userOne.name = "Bob"
+        userOne.email = "bob.gmail.com"
+        userOne.phoneNumber = 111_222_3333
+        userOne.twitterHandle = "Hello World"
+        userOne.messages?.insert(messageOne)
+        
+        let userTwo: Recipient = NSEntityDescription.insertNewObjectForEntityForName("Recipient", inManagedObjectContext: managedObjectContext) as! Recipient
+        
+        userTwo.name = "Sam"
+        userTwo.email = "sam@gmail.com"
+        userTwo.phoneNumber = 333_444_5555
+        userTwo.twitterHandle = "Hi Bob!"
+        userTwo.messages?.insert(messageTwo)
+        userTwo.messages?.insert(messageThree)
+        
         saveContext()
-        fetchData()
+        fetchRecipientData()
     }
+    
     
     // MARK: - Core Data stack
     // Managed Object Context property getter. This is where we've dropped our "boilerplate" code.

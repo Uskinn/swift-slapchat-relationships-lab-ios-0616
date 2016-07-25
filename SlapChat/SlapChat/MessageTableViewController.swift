@@ -8,39 +8,28 @@
 
 import UIKit
 
-class TableViewController: UITableViewController {
-
+class MessageTableViewController: UITableViewController {
     
     var managedMessageObjects: [Message] = []
     let store: DataStore = DataStore()
+    var recipientMessage: Set<Message> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        store.fetchData()
-        
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-        
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
-        
-        
-        
+        managedMessageObjects = Array(recipientMessage)
+        store.fetchRecipientData()
+        self.tableView.reloadData()
     }
     
     override func viewWillAppear(animated: Bool) {
-        
         super.viewWillAppear(true)
-        
-        store.fetchData()
+        store.fetchRecipientData()
         tableView.reloadData()
-        
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     // MARK: - Table view data source
@@ -51,17 +40,13 @@ class TableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return store.messages.count
+        return self.managedMessageObjects.count
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        
         let cell = tableView.dequeueReusableCellWithIdentifier("basicCell", forIndexPath: indexPath)
-        
-        let eachMessage = store.messages[indexPath.row]
-        
+        let eachMessage = self.managedMessageObjects[indexPath.row]
         cell.textLabel?.text = eachMessage.content
-        
         return cell
     }
 }
